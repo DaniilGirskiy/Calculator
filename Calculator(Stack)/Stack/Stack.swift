@@ -8,14 +8,14 @@
 
 import Foundation
 
-struct StringStack {
-    private var array: [String] = []
+struct Stack<Element> {                  // mark
+    private var array = [Element]()
     
     func isEmpty() -> Bool {
         return array.isEmpty ? true : false
     }
     
-    func peek() -> String {
+    func peek() -> Element {
         guard let topElement = array.first else { fatalError("The stack is empty.") }
         return topElement
     }
@@ -28,22 +28,18 @@ struct StringStack {
         array.removeAll()
     }
     
-    mutating func pop() -> String {
+    mutating func pop() -> Element {
         return array.removeFirst()
     }
     
-    mutating func push(_ element: String) {
+    mutating func push(_ element: Element) {
         array.insert(element, at: 0)
     }
 }
 
 
-struct numberStack {
-    private var array: [Double] = []
-}
-
-
-extension StringStack: CustomStringConvertible {
+/*
+extension Stack: CustomStringConvertible {
     var description: String {
         let topDivider = "---Stack---\n"
         let bottomDivider = "\n-----------\n"
@@ -53,7 +49,7 @@ extension StringStack: CustomStringConvertible {
         return topDivider + stackElements + bottomDivider
     }
 }
-
+*/
 
 
 

@@ -13,16 +13,17 @@ protocol CalculatorModelOutput {
 }
 
 enum Operation {
-    case digit(String)
-    case sign(String)
+    case digit(Double)
+    case sign(MathOperation)
+    case result
     case clean
     case dot
 }
 
 enum InternalState {
     case initial
-    case input(String)
-    case mathOperation(String)
+    case input(Double)
+    case mathOperation(MathOperation)
     case result
     case clean
     case dot
@@ -31,7 +32,9 @@ enum InternalState {
 //MARK: - хуй
 enum MathOperation: String {
     case plus = "+"
-    //DOIT
+    case minus = "-"
+    case multiply = "×"
+    case divide = "÷"
 }
 
 // деревья (посмотреть инфу)
@@ -43,7 +46,9 @@ private extension CalculatorModelImpl {
         case .digit(let digit):
             return .input(digit)
         case .sign(let sign):
-            return sign != "=" ? .mathOperation(sign) : .result
+            return .mathOperation(sign)
+        case .result:
+            return .result
         case .clean:
             return .clean
         case .dot:
@@ -59,24 +64,18 @@ private extension CalculatorModelImpl {
             switch prevState {
             case .initial, .clean, .mathOperation(_), .result:
                 
-                currentInputOnDisplay = digit
-                //output?.display(string: currentInputOnDisplay)
-                correctOutput(str: currentInputOnDisplay)
+                currentValue = digit
+                correctOutput(double: currentValue)
                 
             case .input(_):  // добавить условие на ввод до 9 цифр максимум
                 
-                if currentInputOnDisplay.count < 9 {
-                    currentInputOnDisplay = currentInputOnDisplay == "0" ? digit : currentInputOnDisplay + digit
-                    //output?.display(string: currentInputOnDisplay)
-                    correctOutput(str: currentInputOnDisplay)
-                }
-            
+                currentValue = currentValue * 10 + digit
+                correctOutput(double: currentValue)
+                
             case .dot:
                 
-                if currentInputOnDisplay.count < 9 {
-                    currentInputOnDisplay += digit
-                    correctOutput(str: currentInputOnDisplay)
-                }
+                currentValue = 0.1 * (currentValue * 10 + digit)  // с точкой ебала пока (а было норм!!!!)
+                correctOutput(double: currentValue)
                 
             }
                 
@@ -85,18 +84,18 @@ private extension CalculatorModelImpl {
             switch prevState {
             case .initial, .clean:
                 
-                digitsStack.push(currentInputOnDisplay)
+                digitsStack.push(currentValue)
                 signsStack.push(sign)
                 
             case .input, .dot:
                 
-                digitsStack.push(currentInputOnDisplay)
+                digitsStack.push(currentValue)
                 
                 copyDigitsStack = digitsStack  // сохраняем копии стеков на случай отката
                 copySignsStack = signsStack
                 
                 while !signsStack.isEmpty() && digitsStack.count() >= 2 {
-                    if priority(sign: signsStack.peek()) >= priority(sign: sign) {
+                    if priority(sign: signsStack.peek().rawValue) >= priority(sign: sign.rawValue) {
                         doOperation(secondOperand: digitsStack.pop(),
                                     firstOperand: digitsStack.pop(),
                                     sign: signsStack.pop())
@@ -107,9 +106,8 @@ private extension CalculatorModelImpl {
                 
                 signsStack.push(sign)
                 
-                currentInputOnDisplay = digitsStack.peek()
-                //output?.display(string: currentInputOnDisplay) // вывод промежуточного результата - топовый элемент стека
-                correctOutput(str: currentInputOnDisplay)
+                currentValue = digitsStack.peek()                       // ????????
+                correctOutput(double: currentValue)
                 
             case .mathOperation: // меняем знак
                 
@@ -127,7 +125,7 @@ private extension CalculatorModelImpl {
                 copySignsStack = signsStack
                 
                 while !signsStack.isEmpty() && digitsStack.count() >= 2 {
-                    if priority(sign: signsStack.peek()) >= priority(sign: sign) {
+                    if priority(sign: signsStack.peek().rawValue) >= priority(sign: sign.rawValue) {
                         doOperation(secondOperand: digitsStack.pop(),
                                     firstOperand: digitsStack.pop(),
                                     sign: signsStack.pop())
@@ -138,9 +136,8 @@ private extension CalculatorModelImpl {
                 
                 signsStack.push(sign)
                 
-                currentInputOnDisplay = digitsStack.peek()
-                //output?.display(string: currentInputOnDisplay) // вывод промежуточного результата - топовый элемент стека
-                correctOutput(str: currentInputOnDisplay)
+                currentValue = digitsStack.peek()                       // ????????
+                correctOutput(double: currentValue)
                 
             case .result:
                 
@@ -165,7 +162,7 @@ private extension CalculatorModelImpl {
 //                    digitsStack.clean()
 //                }
                 
-                digitsStack.push(currentInputOnDisplay)
+                digitsStack.push(currentValue)
                 
 //                if !copyDigitsStack.isEmpty() && !copySignsStack.isEmpty() {
 //                    signsStack.push(copySignsStack.peek())
@@ -181,9 +178,8 @@ private extension CalculatorModelImpl {
                                 sign: signsStack.pop())
                 }
                 
-                currentInputOnDisplay = digitsStack.peek()
-                //output?.display(string: currentInputOnDisplay)
-                correctOutput(str: currentInputOnDisplay)
+                currentValue = digitsStack.peek()                       // ????????
+                correctOutput(double: currentValue)
                 
             case .mathOperation:   // 5+= ->10  5+5*= ->30
                 
@@ -198,9 +194,8 @@ private extension CalculatorModelImpl {
                                 sign: signsStack.pop())
                 }
                 
-                currentInputOnDisplay = digitsStack.peek()
-                //output?.display(string: currentInputOnDisplay)
-                correctOutput(str: currentInputOnDisplay)
+                currentValue = digitsStack.peek()                       // ????????
+                correctOutput(double: currentValue)
                 
             case .result:  // 5+5= ->10; = ->15; = ->20
                 
@@ -218,9 +213,8 @@ private extension CalculatorModelImpl {
                                 sign: signsStack.pop())
                 }
                 
-                currentInputOnDisplay = digitsStack.peek()
-                //output?.display(string: currentInputOnDisplay)
-                correctOutput(str: currentInputOnDisplay)
+                currentValue = digitsStack.peek()                       // ????????
+                correctOutput(double: currentValue)
                 
             }
             
@@ -231,8 +225,9 @@ private extension CalculatorModelImpl {
             copyDigitsStack.clean()
             copySignsStack.clean()
             currentInputOnDisplay = "0"
+            currentValue = 0
             
-            prevState = .initial
+            //prevState = .initial
             
             output?.display(string: currentInputOnDisplay)
             
@@ -290,39 +285,41 @@ private extension CalculatorModelImpl {
 class CalculatorModelImpl: CalculatorModel {
     
     var currentInputOnDisplay = "0"
+    var currentValue = 0.0
     
-    var digitsStack = StringStack()
-    var signsStack = StringStack()
-    var copyDigitsStack = StringStack()
-    var copySignsStack = StringStack()
+    var digitsStack = Stack<Double>()
+    var signsStack = Stack<MathOperation>()
+    var copyDigitsStack = Stack<Double>()
+    var copySignsStack = Stack<MathOperation>()
     
     private var prevState: InternalState = .initial
     
     var output: CalculatorModelOutput? // почему optional?
     
-    private func doOperation(secondOperand: String, firstOperand: String, sign: String) {
-        switch sign {
+    private func doOperation(secondOperand: Double, firstOperand: Double, sign: MathOperation) {
+        switch sign.rawValue {
         case "+":
-            digitsStack.push(String(Double(firstOperand)! + Double(secondOperand)!))
+            digitsStack.push(firstOperand + secondOperand)
         case "-":
-            digitsStack.push(String(Double(firstOperand)! - Double(secondOperand)!))
+            digitsStack.push(firstOperand - secondOperand)
         case "×":
-            digitsStack.push(String(Double(firstOperand)! * Double(secondOperand)!))
+            digitsStack.push(firstOperand * secondOperand)
         case "÷":
-            digitsStack.push(String(Double(firstOperand)! / Double(secondOperand)!))
+            digitsStack.push(firstOperand / secondOperand)
         default:
             break
         }
     }
     
     
-    private func correctOutput(str: String) {           //correct?   + округление до 9 цифр на дисплее
-        let result = Double(str)! - floor(Double(str)!)
+    private func correctOutput(double: Double) {           //correct?   + округление до 9 цифр на дисплее
+        let result = double - floor(double)
         if result == 0 {
-            output?.display(string: String(Int(Double(str)!)))
+            currentInputOnDisplay = String(Int(double))
         } else {
-            output?.display(string: str)
+            currentInputOnDisplay = String(double)
         }
+        output?.display(string: currentInputOnDisplay)
     }
     
     
@@ -331,99 +328,5 @@ class CalculatorModelImpl: CalculatorModel {
        let internalState = newInternalState(op)
         processWith(state: internalState)
         
-        
-    
-        
-        
-        
-        
-        
-        /*
-        switch op {
-        case .digit(let digit):                                             
-            if stillTyping {
-                if currentInput.count < 9 {
-                    output?.display(string: currentInput + digit)
-                }
-            } else {
-                output?.display(string: digit)
-                stillTyping = digit != "0" ? true : false
-            }
-            
-            lastTapIsDigitButton = true
-            firstInputIsSignOrEquality = false
-            
-        case .sign(let sign):
-            
-             // если еще вводим или первая операция с калькулятором - знак
-             if lastTapIsDigitButton || firstInputIsSignOrEquality {
-                 if sign == "=" && signsStack.isEmpty() && digitsStack.count() == 1 {
-                     digitsStack.clean()
-                 }
-                 digitsStack.push(currentInput)
-             }
-             
-             if sign == "=" {
-                 // СЛУЧАЙ КОГДА SIGN_STACK = 0 и DIGITS_STACK = 1 (Например, сделали какую-нибудь операцию и получили 20 (2*10 = 20; = -> 200; = -> 2000))
-                 if digitsStack.count() == 1 {
-                     if signsStack.isEmpty() && !copyDigitsStack.isEmpty() && !copySignsStack.isEmpty() {
-                         signsStack.push(copySignsStack.pop())
-                         digitsStack.push(copyDigitsStack.pop())
-                         
-                 // СЛУЧАЙ КОГДА SIGN_STACK = 1 и DIGITS_STACK = 1 (Например, вводим 5+= -> 10; = -> 15; = -> 20)
-                     } else if signsStack.count() == 1 {
-                         digitsStack.push(digitsStack.peek())
-                     }
-                 }
-             }
-             
-             //  2 + 3 * 4 - нужно откатиться, после знака равно
-             
-             if sign != "=" && !lastTapIsDigitButton && !firstInputIsSignOrEquality {  // откат до последней операции, если меняем знак
-                     digitsStack = copyDigitsStack
-                     signsStack = copySignsStack
-                 
-             }
-                 
-                 copyDigitsStack = digitsStack  // сохраняем копии стеков на случай отката
-                 copySignsStack = signsStack
-             
-             while !signsStack.isEmpty() && digitsStack.count() >= 2 {
-                 if priority(sign: signsStack.peek()) >= priority(sign: sign) || sign == "=" {
-                     doOperation(secondOperand: digitsStack.pop(),
-                                 firstOperand: digitsStack.pop(),
-                                 sign: signsStack.pop())
-                 } else {
-                     break
-                 }
-             }
-             
-             output?.display(string: digitsStack.peek()) // вывод промежуточного результата - топовый элемент стека)
-             
-             if sign != "=" {
-                 signsStack.push(sign)
-             }
-
-             stillTyping = false
-             firstInputIsSignOrEquality = false
-             lastTapIsDigitButton = false
-            
-        case .clean:
-            
-            lastTapIsDigitButton = false
-            firstInputIsSignOrEquality = true
-            stillTyping = false
-            
-            digitsStack.clean()
-            signsStack.clean()
-            copyDigitsStack.clean()
-            copySignsStack.clean()
-            
-            output?.display(string: "0")
-        
-        default:
-            break
-        }
- */
     }
 }

@@ -20,23 +20,37 @@ class ViewController: UIViewController {
     }
 
     @IBAction func digitPressed(_ sender: UIButton) {
-        let digit = sender.currentTitle!
+        let tag = sender.tag   // tags
         
-        model.input(op: .digit(digit))
+        if tag > 0 && tag < 10 {
+            model.input(op: .digit(Double(tag)))
+        } else if tag == 10 {
+            model.input(op: .digit(0))
+        }
         
     }
     
     @IBAction func signPressed(_ sender: UIButton) {
-        let sign = sender.currentTitle!
+        let tag = sender.tag
         
-        model.input(op: .sign(sign))
+        if tag == 11 {
+            model.input(op: .sign(.plus))
+        } else if tag == 12 {
+            model.input(op: .sign(.minus))
+        } else if tag == 13 {
+            model.input(op: .sign(.multiply))
+        } else if tag == 14 {
+            model.input(op: .sign(.divide))
+        }
     
     }
 
+    @IBAction func resultButtonPressed(_ sender: UIButton) {
+        model.input(op: .result)
+    }
+    
     @IBAction func clearButtonPressed(_ sender: UIButton) {
-        
         model.input(op: .clean)
-        
     }
     
     @IBAction func dotButtonPressed(_ sender: UIButton) {
