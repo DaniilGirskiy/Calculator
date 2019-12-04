@@ -11,7 +11,7 @@ import UIKit
 class ViewController: UIViewController {
     @IBOutlet weak var displayLabel: UILabel!
 
-    private let model = CalculatorModelImpl()
+    var model: CalculatorModel!
     
     
     override func viewDidLoad() {

@@ -8,7 +8,7 @@
 
 import Foundation
 
-protocol CalculatorModel {
+protocol CalculatorModel: class {
     var output: CalculatorModelOutput? { get set }
     func input(op: Operation)
 }

@@ -8,17 +8,26 @@
 
 import UIKit
 
-//class CalculatorAssembly {
-//    var model: CalculatorModel {
-//        return CalculatorModelImpl()
-//    }
-//    
-//    func calculatorViewController(with model: CalculatorModel) -> ViewController {
-//        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-//        let viewController = storyboard.instantiateViewController(withIdentifier: "хуй") as! ViewController
-//        viewController.model = model
-//        model.output = viewController
-//        
-//        return viewController
-//    }
-//}
+class CalculatorAssembly {
+    var model: CalculatorModel {
+        return CalculatorModelImpl()
+    }
+    
+    func calculatorViewController(with model: CalculatorModel) -> ViewController {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let viewController = storyboard.instantiateViewController(withIdentifier: "хуй") as! ViewController
+        viewController.model = model
+        model.output = viewController
+        
+        return viewController
+    }
+    
+    func calculatorCollectionController(with model: CalculatorModel) -> CollectionViewController {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let viewController = storyboard.instantiateViewController(withIdentifier: "пизда") as! CollectionViewController
+        viewController.model = model
+        model.output = viewController
+        
+        return viewController
+    }
+}

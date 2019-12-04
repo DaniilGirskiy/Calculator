@@ -24,7 +24,7 @@ class Calculator_Stack_Tests: XCTestCase {
     private var calcModel: CalculatorModel!
     
     override func setUp() {
-        calcModel = CalculatorModelImpl()
+        calcModel = CalculatorAssembly().model
         // Put setup code here. This method is called before the invocation of each test method in the class.
     }
 
@@ -37,10 +37,10 @@ class Calculator_Stack_Tests: XCTestCase {
         let output = MockOutput()
         calcModel.output = output
         // when
-        calcModel.input(op: .digit("1"))
-        calcModel.input(op: .digit("2"))
+        calcModel.input(op: .digit(1))
+        calcModel.input(op: .digit(1))
         //then
-        XCTAssert(output.testOutput == "12", "Обоссамс")
+        XCTAssert(output.testOutput == "11", "Обоссамс")
     }
 
     

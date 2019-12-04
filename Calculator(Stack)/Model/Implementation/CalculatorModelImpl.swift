@@ -69,8 +69,11 @@ private extension CalculatorModelImpl {
                 
             case .input(_):  // добавить условие на ввод до 9 цифр максимум
                 
-                currentValue = currentValue * 10 + digit
-                correctOutput(double: currentValue)
+                if currentInputOnDisplay.count < 9 {
+                    currentValue = currentValue * 10 + digit
+                    correctOutput(double: currentValue)
+                }
+                
                 
             case .dot:
                 
